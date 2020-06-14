@@ -2,6 +2,8 @@
   package="com.taipei_locator">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
 
     <application
       android:name=".MainApplication"
@@ -22,6 +24,11 @@
         </intent-filter>
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAZ-rucS-jGjNdVJS-ltfJP-H_NJiDl8KY"/>
+
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
     </application>
 
 </manifest>
