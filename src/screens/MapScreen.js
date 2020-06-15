@@ -1,34 +1,40 @@
 import React from 'react';
 import {
-  Platform,
-  StyleSheet,
+  Animated,
   Text,
-  TouchableOpacity,
+  StyleSheet,
   View,
-  ActivityIndicator
 } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import MaskedView from '@react-native-community/masked-view';
 import MapView, { Marker } from 'react-native-maps';
 //import MapView from 'react-native-map-clustering';
 import Geolocation from '@react-native-community/geolocation';
 import Layout from "../constants/Layout";
 import trashcanIcon from "../../assets/images/delete.png";
-import restroomIcon from "../../assets/images/wc.png";
 import trashcanData from "../../assets/data/trashcans.json";
 import restroomData from "../../assets/data/restrooms.json";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
+import RestroomMarker from "../components/RestroomMarker";
+import TrashcanMarker from "../components/TrashcanMarker";
 
+
+import loadingMask from "../../assets/images/find.png"
 
 //Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
 export default class MapScreen extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
+      loadingProgress: new Animated.Value(0),
+      animationDone: false,
       initialRegion: null,
+      isMapReady: false,
       data: [],
-      icon: null
+      icon: null,
+      currentMarker: null,
     }
+    console.log("project started")
   }
 
   getCurrentLocation = () => {
@@ -41,11 +47,11 @@ export default class MapScreen extends React.PureComponent {
           longitudeDelta: 0.005
         }
         this.setState({
-          initialRegion: region
+          initialRegion: region,
+          loadedUserLocation: true,
         })
+        console.log("got location")
 
-        this.map.animateToRegion(region, 1000)
-        console.log("animate")
       },
       error => console.log(error),
       {
@@ -57,152 +63,127 @@ export default class MapScreen extends React.PureComponent {
   }
 
   componentDidMount() {
-
     this.getCurrentLocation();
     console.log("componentDidMount")
 
   }
 
-  restroomType = (show, type) => {
-    switch (type) {
-      case "wheelchair":
-        if (show == "Y") {
-          return <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 2 }}>
-            <FontAwesome5
-              name="wheelchair"
-              size={12}
-              style={{ paddingLeft: 5 }} />
-            <Text style={styles.calloutTextStrong}>無障礙公廁</Text>
-          </View>;
-        }
-        break;
-      case "child":
-        if (show == "Y") {
-          return <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 3 }}>
-            <FontAwesome5
-              name="child"
-              size={12}
-              style={{ paddingLeft: 5 }} />
-            <Text style={styles.calloutTextStrong}>親子公廁</Text>
-          </View>;
-        }
-        break;
-      // case "kindly":
-      //   if (show == "Y") {
-      //     return <Text style={styles.calloutTextDes}>貼心公廁</Text>
-      //   }
-      //   break;
-    }
-  }
-
-  restroomRating = (num, level) => {
-    if (parseInt(num) > 0) {
-      let ratingNames = ["特優", "優等", "普通", "加強", "改善"];
-      let ratingIcons = ["grin-stars", "smile", "meh", "frown", "dizzy"]
-      return <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 3 }}>
-        <Text style={styles.calloutTextStrong}>{num}間｜</Text>
-        <FontAwesome5
-          name={ratingIcons[level]}
-          size={12}
-          style={{ paddingLeft: 2 }} />
-        <Text style={styles.calloutTextStrong}>{ratingNames[level]}級</Text>
-      </View>;
-    }
+  loadRestrooms = () => {
+    console.log("loadingRestrooms")
+    return restroomData.ToiletData.map((data, i) =>
+      <RestroomMarker data={data} index={i} />
+    )
   }
 
   loadTrashcans = () => {
     console.log("loadingTrashcans")
     return trashcanData.map((data) =>
-      <Marker
-        key={data.field1}
-        coordinate={{ longitude: parseFloat(data.long), latitude: parseFloat(data.lat) }}
-        title={data.road + data.address}
-        description={data.remark}
-        image={trashcanIcon}
-        tracksViewChanges={false}
-      />
-    )
-  }
-
-  loadRestrooms = () => {
-    console.log("loadingRestrooms")
-    return restroomData.ToiletData.map((data) => {
-      let ratings = [data.FirstLevel, data.SecondLevel, data.ThirdLevel, data.FourthLevel, data.FifthLevel]
-      var renderRatings = [];
-      for (let i = 0; i < 5; i++) {
-        renderRatings.push(this.restroomRating(ratings[i], i))
-      }
-      return <Marker
-        coordinate={{ longitude: parseFloat(data.Lng), latitude: parseFloat(data.Lat) }}
-        image={restroomIcon}
-        wtracksViewChanges={false}
-      >
-        <MapView.Callout style={styles.calloutContainer}>
-          <View>
-            <Text style={styles.calloutTextTitle}> {data.DepName} </Text>
-            <Text style={{ fontSize: 11, paddingBottom: 5 }}> {data.Address}  </Text>
-            {renderRatings}
-            {this.restroomType(data.Restroom, "wheelchair")}
-            {this.restroomType(data.Childroom, "child")}
-
-          </View>
-        </MapView.Callout>
-      </Marker>
-    }
+      <TrashcanMarker data={data} />
     )
   }
 
   render() {
-    const { navigation } = this.props
-    if (this.state.initialRegion == null) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Text style={{ color: "black" }}>我還在找..</Text>
-        </View>
-      )
-    } else {
-      return (
-        <View style={styles.mapContainer} >
-          <MapView
-            style={styles.mapStyle}
-            showsUserLocation
-            showsMyLocationButton
-            showsCompass
-            region={this.state.initialRegion}
-            //initialRegion={{ longitude: 122, latitude: 25.5, longitudeDelta: 0.01, latitudeDelta: 0.01 }}
-            ref={(map) => { this.map = map }}
-          >
-            {this.loadRestrooms()}
-            {this.loadTrashcans()}
-
-          </MapView>
-          <View style={styles.openDrawerButtonContainer}>
-            <MaterialCommunityIcons.Button
-              name="menu"
-              onPress={navigation.openDrawer}
-              backgroundColor="rgba(0,0,0,0.2)"
-              size={36}
-              iconStyle={styles.openDrawerButton}
-            />
-          </View>
-          <View style={styles.showUserLocationButtonContainer}>
-            <FontAwesome5.Button
-              name="location-arrow"
-              onPress={() => this.map.animateToRegion(this.state.initialRegion, 1500)}
-              backgroundColor="#fff"
-              size={26}
-              iconStyle={styles.showUserLocationButton}
-            />
-          </View>
-        </View>
-
-      );
+    console.log("render")
+    const { navigation } = this.props;
+    const colorLayer = this.state.animationDone ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "blue" }]} />;
+    const whiteLayer = this.state.isMapReady ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "black" }]} />;
+    const imageScale = {
+      transform: [
+        {
+          scale: this.state.loadingProgress.interpolate({
+            inputRange: [0, 15, 100],
+            outputRange: [0.1, 0.06, 16],
+          })
+        }
+      ]
     }
+    const opacity = {
+      opacity: this.state.loadingProgress.interpolate({
+        inputRange: [0, 25, 50],
+        outputRange: [0, 0, 1],
+        extrapolate: "clamp"
+      })
+    }
+
+    // if (this.state.isMapReady && !this.state.animationDone) {
+    //   console.log("animation start")
+
+    //   Animated.timing(this.state.loadingProgress, {
+    //     toValue: 100,
+    //     duration: 3000,
+    //     useNativeDriver: true,
+    //     delay: 400,
+    //   }).start(() => {
+    //     this.setState({
+    //       animationDone: true
+    //     })
+
+    //   })
+    // }
+
+    return (
+      <View style={{ flex: 1 }}>
+        {/* {colorLayer}
+        <MaskedView
+          style={{ flex: 1 }}
+          maskElement={
+            <View style={styles.centeredContainer}>
+              <Animated.Image
+                source={loadingMask}
+                style={[{ width: 1000 }, imageScale]}
+                resizeMode="contain"
+              />
+            </View>
+          }
+        >
+
+          
+          <Animated.View style={[styles.mapContainer, opacity]}> */}
+
+        <MapView
+          style={styles.mapStyle}
+          showsUserLocation
+          showsMyLocationButton
+          showsCompass
+          region={this.state.initialRegion}
+          //initialRegion={{ longitude: 122, latitude: 25.5, longitudeDelta: 0.01, latitudeDelta: 0.01 }}
+          ref={(map) => { this.map = map }}
+          onMapReady={() => { this.setState({ isMapReady: true }); console.log("map ready") }}
+        >
+          {this.loadRestrooms()}
+          {this.loadTrashcans()}
+
+        </MapView>
+        <View style={styles.openDrawerButtonContainer}>
+          <MaterialCommunityIcons.Button
+            name="menu"
+            onPress={navigation.openDrawer}
+            backgroundColor="rgba(0,0,0,0.2)"
+            size={36}
+            iconStyle={styles.openDrawerButton}
+          />
+        </View>
+        <View style={styles.showUserLocationButtonContainer}>
+          <FontAwesome5.Button
+            name="location-arrow"
+            onPress={() => this.map.animateToRegion(this.state.initialRegion, 1500)}
+            backgroundColor="#fff"
+            size={26}
+            iconStyle={styles.showUserLocationButton}
+          />
+        </View>
+        {whiteLayer}
+        {/* </Animated.View>
+
+        </MaskedView> */}
+      </View>
+    )
+
   }
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
+  centeredContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center"
