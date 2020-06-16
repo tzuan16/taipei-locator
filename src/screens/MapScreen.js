@@ -4,12 +4,15 @@ import {
   Text,
   StyleSheet,
   View,
+  TouchableOpacity,
 } from 'react-native';
 import MaskedView from '@react-native-community/masked-view';
 import MapView, { Marker } from 'react-native-maps';
 //import MapView from 'react-native-map-clustering';
 import Geolocation from '@react-native-community/geolocation';
 import Layout from "../constants/Layout";
+import Colors from "../constants/Colors";
+
 import trashcanIcon from "../../assets/images/delete.png";
 import trashcanData from "../../assets/data/trashcans.json";
 import restroomData from "../../assets/data/restrooms.json";
@@ -17,12 +20,13 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import RestroomMarker from "../components/RestroomMarker";
 import TrashcanMarker from "../components/TrashcanMarker";
+import AnimatedFilterButton from "../components/AnimatedFilterButton";
 
 
 import loadingMask from "../../assets/images/find.png"
 
 //Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
-export default class MapScreen extends React.PureComponent {
+export default class MapScreen extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -33,6 +37,7 @@ export default class MapScreen extends React.PureComponent {
       data: [],
       icon: null,
       currentMarker: null,
+      chosenIcons: ["trashcan"],
     }
     console.log("project started")
   }
@@ -82,6 +87,19 @@ export default class MapScreen extends React.PureComponent {
     )
   }
 
+  updateChosenIcons = (toUpdate, exist) => {
+    // The toUpdate item exists in current state array
+    // Should remove it
+    console.log("update: " + exist)
+    this.setState(prevState => ({
+      chosenIcons: exist ?
+        prevState.chosenIcons.filter(item => { item !== toUpdate }) :
+        prevState.chosenIcons.concat(toUpdate)
+    }
+    ))
+
+  }
+
   render() {
     console.log("render")
     const { navigation } = this.props;
@@ -97,6 +115,7 @@ export default class MapScreen extends React.PureComponent {
         }
       ]
     }
+
     const opacity = {
       opacity: this.state.loadingProgress.interpolate({
         inputRange: [0, 25, 50],
@@ -120,6 +139,11 @@ export default class MapScreen extends React.PureComponent {
 
     //   })
     // }
+
+    const renderIconFunctions = {
+      "restroom": this.loadRestrooms,
+      "trashcan": this.loadTrashcans,
+    };
 
     return (
       <View style={{ flex: 1 }}>
@@ -145,14 +169,13 @@ export default class MapScreen extends React.PureComponent {
           showsUserLocation
           showsMyLocationButton
           showsCompass
-          region={this.state.initialRegion}
-          //initialRegion={{ longitude: 122, latitude: 25.5, longitudeDelta: 0.01, latitudeDelta: 0.01 }}
+          initialRegion={this.state.initialRegion}
           ref={(map) => { this.map = map }}
           onMapReady={() => { this.setState({ isMapReady: true }); console.log("map ready") }}
         >
-          {this.loadRestrooms()}
-          {this.loadTrashcans()}
-
+          {this.state.chosenIcons.map(icon => {
+            return renderIconFunctions[icon]();
+          })}
         </MapView>
         <View style={styles.openDrawerButtonContainer}>
           <MaterialCommunityIcons.Button
@@ -163,15 +186,24 @@ export default class MapScreen extends React.PureComponent {
             iconStyle={styles.openDrawerButton}
           />
         </View>
+
         <View style={styles.showUserLocationButtonContainer}>
-          <FontAwesome5.Button
-            name="location-arrow"
+          <TouchableOpacity
+            style={[styles.showUserLocationButton, styles.centered]}
+            activeOpacity={0.7}
             onPress={() => this.map.animateToRegion(this.state.initialRegion, 1500)}
-            backgroundColor="#fff"
-            size={26}
-            iconStyle={styles.showUserLocationButton}
-          />
+          >
+            <FontAwesome5
+              name="location-arrow"
+              size={26}
+              color={Colors.buttonColor}
+              style={{ paddingTop: 0 }}
+            />
+          </TouchableOpacity>
         </View>
+        <AnimatedFilterButton
+          onPress={(toUpdate, exist) => this.updateChosenIcons(toUpdate, exist)}
+        />
         {whiteLayer}
         {/* </Animated.View>
 
@@ -183,7 +215,7 @@ export default class MapScreen extends React.PureComponent {
 }
 
 const styles = StyleSheet.create({
-  centeredContainer: {
+  centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center"
@@ -219,11 +251,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 100,
-    //borderWidth: 2
   },
   showUserLocationButton: {
-    marginRight: 0,
-    //marginVertical: -5,
-    color: "#3399ff",
+    backgroundColor: "#fff",
+    height: 45,
+    width: 45,
+    borderWidth: 2,
+    borderRadius: 7,
+    borderColor: Colors.buttonBorderColor,
   }
 });

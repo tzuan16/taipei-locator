@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import restroomIcon from "../../assets/images/wc.png";
 import MapView, { Marker } from 'react-native-maps';
 
-export default class RestroomMarker extends PureComponent {
+export default class RestroomMarker extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
