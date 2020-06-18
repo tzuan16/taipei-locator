@@ -8,8 +8,22 @@ import {
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import restroomIcon from "../../assets/images/wc.png";
 import MapView, { Marker } from 'react-native-maps';
+import restroomData from "../../assets/data/restrooms.json";
+import within from "../functions/withinCoord"
 
-export default class RestroomMarker extends React.PureComponent {
+export default class RestroomMarkers extends React.PureComponent {
+  render() {
+    console.log("restroom")
+    return restroomData.ToiletData.map((data, i) => {
+      if (within(this.props.region, data.Lng, data.Lat)) {
+        return <RestroomMarker data={data} index={i} />
+      }
+    }
+    )
+  }
+}
+
+class RestroomMarker extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
@@ -73,6 +87,7 @@ export default class RestroomMarker extends React.PureComponent {
   }
 
   render() {
+    console.log("restroom render")
     const { data, index } = this.props;
     return (
       <Marker
@@ -80,7 +95,6 @@ export default class RestroomMarker extends React.PureComponent {
         coordinate={{ longitude: parseFloat(data.Lng), latitude: parseFloat(data.Lat) }}
         image={restroomIcon}
         tracksViewChanges={false}
-        ref={ref => { this.marker = ref }}
         onPress={() => { this.setState({ pressed: true }) }}
       >
 

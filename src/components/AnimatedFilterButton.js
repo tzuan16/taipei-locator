@@ -13,6 +13,9 @@ import trashcanUnselected from "../../assets/images/trashcan-x.png";
 import trashcanSelected from "../../assets/images/trashcan-o.png";
 import restroomUnselected from "../../assets/images/wc-x.png";
 import restroomSelected from "../../assets/images/wc-o.png";
+import atmSelected from "../../assets/images/atm-o.png";
+import atmUnselected from "../../assets/images/atm-x.png";
+
 
 import Layout from "../constants/Layout"
 
@@ -21,12 +24,12 @@ export default class AnimatedFilterButton extends React.PureComponent {
   state = {
     width: new Animated.Value(45),
     opened: false,
-    selected: {
-      "trashcan": true,
-      "restroom": false,
-    },
-    trashcanSelected: true,
-    restroomSelected: false,
+    // selected: {
+    //   "trashcan": true,
+    //   "restroom": false,
+    //   "atm": false,
+    // },
+    selected: "trashcan"
   };
 
   updateWidth = (open) => {
@@ -41,6 +44,13 @@ export default class AnimatedFilterButton extends React.PureComponent {
     );
   };
 
+  updateSelected = (item) => {
+    this.setState(prevState => (
+      {
+        //selected: { ...this.state.selected, [item]: !prevState.selected[item] }
+        selected: item
+      }))
+  }
 
   render() {
     const opacity = {
@@ -50,10 +60,12 @@ export default class AnimatedFilterButton extends React.PureComponent {
         extrapolate: "clamp"
       })
     }
-    const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+    const items = ["trashcan", "restroom", "atm"];
+
     return (
       <View>
-        <TouchableOpacity
+        <TouchableWithoutFeedback
           disabled={!this.state.opened}
           style={
             styles.absolute
@@ -64,55 +76,60 @@ export default class AnimatedFilterButton extends React.PureComponent {
           }}
         >
           <Animated.View style={[styles.buttonContainer, { width: this.state.width }]}>
-            <AnimatedTouchable
+            <TouchableOpacity
               style={[styles.button]}
               activeOpacity={0.7}
               onPress={() => { this.updateWidth(!this.state.opened) }}
             >
               <MaterialCommunityIcons
-                name={this.state.opened ? "filter" : "filter-outline"}
+                name={this.state.opened ? "filter-outline" : "filter"}
                 size={32}
                 color={Colors.buttonColor}
                 style={{ paddingTop: 5 }}
               />
 
-            </AnimatedTouchable>
+            </TouchableOpacity>
             {/* {this.state.opened ? */}
-            <TouchableOpacity
-              onPress={() => {
-                this.setState((prevState) => ({
-                  trashcanSelected: !prevState.trashcanSelected
-                }))
-                this.props.onPress("trashcan", this.state.trashcanSelected)
-              }}
-              style={{ marginRight: 6 }}
-            >
-              <Animated.Image
-                source={this.state.trashcanSelected ? trashcanSelected : trashcanUnselected}
-                style={[{ width: 26 }, opacity]}
-                resizeMode="contain"
+            {items.map(item => {
+              return <FilterButton
+                item={item}
+                selected={this.state.selected}
+                opacity={opacity}
+                updateSelected={(item) => {
+                  this.updateSelected(item)
+                  this.props.onPress(item)
+                }}
               />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                this.setState((prevState) => ({
-                  restroomSelected: !prevState.restroomSelected
-                }))
-                this.props.onPress("restroom", this.state.restroomSelected)
-              }}
-            >
-              <Animated.Image
-                source={this.state.restroomSelected ? restroomSelected : restroomUnselected}
-                style={[{ width: 28 }, opacity]}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
+            })}
             {/* : null} */}
           </Animated.View>
-        </TouchableOpacity>
+        </TouchableWithoutFeedback>
       </View>
     )
   }
+}
+
+function FilterButton({ selected, updateSelected, item, opacity }) {
+  const icon = {
+    "trashcan": [trashcanSelected, trashcanUnselected, 2, 26],
+    "restroom": [restroomSelected, restroomUnselected, 10, 28],
+    "atm": [atmSelected, atmUnselected, 12, 24]
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={() => {
+        updateSelected(item)
+      }}
+      style={{ marginLeft: icon[item][2] }}
+    >
+      <Animated.Image
+        source={item == selected ? icon[item][0] : icon[item][1]}
+        style={[{ width: icon[item][3] }, opacity]}
+        resizeMode="contain"
+      />
+    </TouchableOpacity>
+  )
 }
 
 const styles = StyleSheet.create({

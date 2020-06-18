@@ -1,15 +1,33 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-} from 'react-native';
 
 import MapView, { Marker } from 'react-native-maps';
-import trashcanIcon from "../../assets/images/delete.png";
+import trashcanIcon from "../../assets/images/trashcan.png";
+import trashcanData from "../../assets/data/trashcans.json";
+import within from "../functions/withinCoord"
+
+export default class TrashcanMarkers extends React.PureComponent {
+  render() {
+    console.log("loading trashcan")
+
+    return trashcanData.map((data) => {
+      if (within(this.props.region, data.long, data.lat)) {
 
 
-export default function RestroomMarker({ data }) {
+        return <TrashcanMarker data={data} />
+      }
+    }
+
+    )
+  }
+}
+
+
+
+
+
+function TrashcanMarker({ data }) {
+  console.log("atm render")
+
   return (
     <Marker
       key={data.field1}

@@ -13,13 +13,12 @@ import Geolocation from '@react-native-community/geolocation';
 import Layout from "../constants/Layout";
 import Colors from "../constants/Colors";
 
-import trashcanIcon from "../../assets/images/delete.png";
-import trashcanData from "../../assets/data/trashcans.json";
-import restroomData from "../../assets/data/restrooms.json";
+
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
-import RestroomMarker from "../components/RestroomMarker";
-import TrashcanMarker from "../components/TrashcanMarker";
+import RestroomMarkers from "../components/RestroomMarker";
+import TrashcanMarkers from "../components/TrashcanMarker";
+import AtmMarkers from "../components/AtmMarker";
 import AnimatedFilterButton from "../components/AnimatedFilterButton";
 
 
@@ -32,12 +31,14 @@ export default class MapScreen extends React.Component {
     this.state = {
       loadingProgress: new Animated.Value(0),
       animationDone: false,
-      initialRegion: null,
+      userLocation: null,
+      mapRegion: null,
       isMapReady: false,
       data: [],
       icon: null,
       currentMarker: null,
-      chosenIcons: ["trashcan"],
+      selected: "trashcan",
+      iconsLoaded: false,
     }
     console.log("project started")
   }
@@ -52,7 +53,8 @@ export default class MapScreen extends React.Component {
           longitudeDelta: 0.005
         }
         this.setState({
-          initialRegion: region,
+          userLocation: region,
+          mapRegion: region,
           loadedUserLocation: true,
         })
         console.log("got location")
@@ -70,38 +72,44 @@ export default class MapScreen extends React.Component {
   componentDidMount() {
     this.getCurrentLocation();
     console.log("componentDidMount")
-
+    this.setState({ iconsLoaded: true })
   }
 
-  loadRestrooms = () => {
-    console.log("loadingRestrooms")
-    return restroomData.ToiletData.map((data, i) =>
-      <RestroomMarker data={data} index={i} />
-    )
+  componentDidUpdate(prevProp, prevState) {
+    console.log("did update")
+    // if (prevState.chosenIcons !== this.state.chosenIcons) {
+    //   this.setState({ iconsLoaded: true })
+    //   console.log("a")
+    // }
   }
 
-  loadTrashcans = () => {
-    console.log("loadingTrashcans")
-    return trashcanData.map((data) =>
-      <TrashcanMarker data={data} />
-    )
-  }
-
-  updateChosenIcons = (toUpdate, exist) => {
+  updateSelected = (toUpdate) => {
     // The toUpdate item exists in current state array
     // Should remove it
-    console.log("update: " + exist)
-    this.setState(prevState => ({
-      chosenIcons: exist ?
-        prevState.chosenIcons.filter(item => { item !== toUpdate }) :
-        prevState.chosenIcons.concat(toUpdate)
-    }
-    ))
+    this.setState({
+      // chosenIcons: exist ?
+      //   prevState.chosenIcons.filter(item => item != toUpdate) :
+      //   prevState.chosenIcons.concat(toUpdate),
+      selected: toUpdate,
+    })
+  }
 
+  updateUserLocation = (lat, lng, speed) => {
+    if (speed > 1) {
+      this.setState({
+        userLocation: {
+          latitude: lat,
+          longitude: lng,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005
+        }
+      })
+    }
   }
 
   render() {
     console.log("render")
+
     const { navigation } = this.props;
     const colorLayer = this.state.animationDone ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "blue" }]} />;
     const whiteLayer = this.state.isMapReady ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "black" }]} />;
@@ -115,6 +123,8 @@ export default class MapScreen extends React.Component {
         }
       ]
     }
+
+    const loadingLayer = this.state.iconsLoaded ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "black", opacity: 0.5 }]} />;
 
     const opacity = {
       opacity: this.state.loadingProgress.interpolate({
@@ -140,12 +150,18 @@ export default class MapScreen extends React.Component {
     //   })
     // }
 
-    const renderIconFunctions = {
-      "restroom": this.loadRestrooms,
-      "trashcan": this.loadTrashcans,
+    const renderIcons = {
+      "restroom": <RestroomMarkers region={this.state.mapRegion} />,
+      "trashcan": <TrashcanMarkers region={this.state.mapRegion} />,
+      "atm": <AtmMarkers region={this.state.mapRegion} />
     };
 
+    // const renderIcons = this.state.chosenIcons.map((icon, i) => {
+    //   return renderIconFunctions[icon];
+    // });
+
     return (
+
       <View style={{ flex: 1 }}>
         {/* {colorLayer}
         <MaskedView
@@ -160,22 +176,23 @@ export default class MapScreen extends React.Component {
             </View>
           }
         >
-
-          
           <Animated.View style={[styles.mapContainer, opacity]}> */}
-
         <MapView
           style={styles.mapStyle}
           showsUserLocation
           showsMyLocationButton
           showsCompass
-          initialRegion={this.state.initialRegion}
+          initialRegion={this.state.userLocation}
+          onRegionChangeComplete={region => { this.setState({ mapRegion: region }) }}
           ref={(map) => { this.map = map }}
           onMapReady={() => { this.setState({ isMapReady: true }); console.log("map ready") }}
+          onUserLocationChange={Location => {
+            const { latitude, longitude, speed } = Location.nativeEvent.coordinate
+            this.updateUserLocation(latitude, longitude, speed)
+          }
+          }
         >
-          {this.state.chosenIcons.map(icon => {
-            return renderIconFunctions[icon]();
-          })}
+          {this.state.isMapReady && renderIcons[this.state.selected]}
         </MapView>
         <View style={styles.openDrawerButtonContainer}>
           <MaterialCommunityIcons.Button
@@ -191,7 +208,7 @@ export default class MapScreen extends React.Component {
           <TouchableOpacity
             style={[styles.showUserLocationButton, styles.centered]}
             activeOpacity={0.7}
-            onPress={() => this.map.animateToRegion(this.state.initialRegion, 1500)}
+            onPress={() => this.map.animateToRegion(this.state.userLocation, 1500)}
           >
             <FontAwesome5
               name="location-arrow"
@@ -202,13 +219,13 @@ export default class MapScreen extends React.Component {
           </TouchableOpacity>
         </View>
         <AnimatedFilterButton
-          onPress={(toUpdate, exist) => this.updateChosenIcons(toUpdate, exist)}
+          onPress={(toUpdate) => this.updateSelected(toUpdate)}
         />
-        {whiteLayer}
+        {/* {loadingLayer} */}
         {/* </Animated.View>
 
         </MaskedView> */}
-      </View>
+      </View >
     )
 
   }
