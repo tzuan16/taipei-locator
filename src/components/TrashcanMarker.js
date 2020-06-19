@@ -26,7 +26,6 @@ export default class TrashcanMarkers extends React.PureComponent {
 
 
 function TrashcanMarker({ data }) {
-  console.log("atm render")
 
   return (
     <Marker

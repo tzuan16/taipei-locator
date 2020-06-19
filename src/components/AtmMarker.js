@@ -14,33 +14,45 @@ export default class AtmMarkers extends React.PureComponent {
   render() {
     return atmData.map((data) => {
       if (within(this.props.region, data.lon, data.lat)) {
-
-        return <AtmMarker data={data} />
+        if (this.props.filter === "all") {
+          return <AtmMarker data={data} />
+        } else if (this.props.filter == data.code) {
+          return <AtmMarker data={data} />
+        }
       }
     })
   }
 }
 
-function AtmMarker({ data }) {
-  //const [pressed, setPressed] = useState(false);
-  return (
-    <Marker
-      key={data.id}
-      coordinate={{ longitude: data.lon, latitude: data.lat }}
-      image={atmIcon}
-      tracksViewChanges={false}
-    //onPress={() => { }}
-    >
-      <MapView.Callout style={styles.calloutContainer} >
-        <View>
-          <Text style={styles.calloutTextTitle}> {data.location} </Text>
-          <Text style={{ fontSize: 11, paddingBottom: 5 }}> {data.address}  </Text>
-          <Text style={styles.calloutTextStrong}> {("00" + data.code).slice(-3)} {data.bank}  </Text>
+class AtmMarker extends React.Component {
+  state = {
+    pressed: false
+  }
+  render() {
+    const { data } = this.props;
+    console.log("render atm", this.state.pressed)
+    return (
+      <Marker
+        key={`${data.id}${Date.now()}`}
+        coordinate={{ longitude: data.lon, latitude: data.lat }}
+        image={atmIcon}
+        tracksViewChanges={false}
+        onPress={() => { this.setState({ pressed: true }) }}
+      >
+        {this.state.pressed ?
+          <MapView.Callout style={styles.calloutContainer} >
 
-        </View>
-      </MapView.Callout>
-    </Marker>
-  )
+            <View style={{ height: 50 }}>
+              <Text style={styles.calloutTextTitle}> {data.location} </Text>
+              <Text style={{ fontSize: 11, paddingBottom: 5 }}> {data.address}  </Text>
+              <Text style={styles.calloutTextStrong}> {("00" + data.code).slice(-3)} {data.bank}  </Text>
+
+            </View>
+
+          </MapView.Callout> : null}
+      </Marker>
+    )
+  }
 }
 
 const styles = StyleSheet.create({

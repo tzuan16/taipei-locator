@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Image,
   View,
@@ -15,9 +15,10 @@ import restroomUnselected from "../../assets/images/wc-x.png";
 import restroomSelected from "../../assets/images/wc-o.png";
 import atmSelected from "../../assets/images/atm-o.png";
 import atmUnselected from "../../assets/images/atm-x.png";
-
+import FilterPopupPicker from "../components/FilterPopupPicker";
 
 import Layout from "../constants/Layout"
+import { Picker } from '@react-native-community/picker';
 
 
 export default class AnimatedFilterButton extends React.PureComponent {
@@ -29,7 +30,7 @@ export default class AnimatedFilterButton extends React.PureComponent {
     //   "restroom": false,
     //   "atm": false,
     // },
-    selected: "trashcan"
+    modalOpened: false,
   };
 
   updateWidth = (open) => {
@@ -44,14 +45,6 @@ export default class AnimatedFilterButton extends React.PureComponent {
     );
   };
 
-  updateSelected = (item) => {
-    this.setState(prevState => (
-      {
-        //selected: { ...this.state.selected, [item]: !prevState.selected[item] }
-        selected: item
-      }))
-  }
-
   render() {
     const opacity = {
       opacity: this.state.width.interpolate({
@@ -62,7 +55,6 @@ export default class AnimatedFilterButton extends React.PureComponent {
     }
 
     const items = ["trashcan", "restroom", "atm"];
-
     return (
       <View>
         <TouchableWithoutFeedback
@@ -93,23 +85,33 @@ export default class AnimatedFilterButton extends React.PureComponent {
             {items.map(item => {
               return <FilterButton
                 item={item}
-                selected={this.state.selected}
+                selected={this.props.selected}
                 opacity={opacity}
                 updateSelected={(item) => {
-                  this.updateSelected(item)
                   this.props.onPress(item)
                 }}
+                openModal={() => { this.setState({ modalOpened: true }) }}
               />
             })}
             {/* : null} */}
           </Animated.View>
+
         </TouchableWithoutFeedback>
+        <FilterPopupPicker
+          opened={this.state.modalOpened}
+          setOpened={(toUpdate) => { this.setState({ modalOpened: toUpdate }) }}
+          updateSelected={(item) => {
+            this.props.onPress(item)
+          }}
+          updateFilterBank={toUpdate => { this.props.updateFilterBank(toUpdate) }}
+        />
+
       </View>
     )
   }
 }
 
-function FilterButton({ selected, updateSelected, item, opacity }) {
+function FilterButton({ selected, updateSelected, item, opacity, openModal }) {
   const icon = {
     "trashcan": [trashcanSelected, trashcanUnselected, 2, 26],
     "restroom": [restroomSelected, restroomUnselected, 10, 28],
@@ -119,7 +121,7 @@ function FilterButton({ selected, updateSelected, item, opacity }) {
   return (
     <TouchableOpacity
       onPress={() => {
-        updateSelected(item)
+        item == "atm" ? openModal() : updateSelected(item)
       }}
       style={{ marginLeft: icon[item][2] }}
     >

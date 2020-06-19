@@ -25,13 +25,18 @@ import AnimatedFilterButton from "../components/AnimatedFilterButton";
 import loadingMask from "../../assets/images/find.png"
 
 //Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
-export default class MapScreen extends React.Component {
+export default class MapScreen extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
       loadingProgress: new Animated.Value(0),
       animationDone: false,
-      userLocation: null,
+      userLocation: {
+        latitude: 25.025,
+        longitude: 121.55,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005
+      },
       mapRegion: null,
       isMapReady: false,
       data: [],
@@ -39,6 +44,7 @@ export default class MapScreen extends React.Component {
       currentMarker: null,
       selected: "trashcan",
       iconsLoaded: false,
+      atmFilterBank: "all",
     }
     console.log("project started")
   }
@@ -58,7 +64,7 @@ export default class MapScreen extends React.Component {
           loadedUserLocation: true,
         })
         console.log("got location")
-
+        this.map.animateToRegion(this.state.userLocation, 1500)
       },
       error => console.log(error),
       {
@@ -107,9 +113,25 @@ export default class MapScreen extends React.Component {
     }
   }
 
+  renderIconsCondition = () => {
+    const renderIcons = {
+      "restroom": <RestroomMarkers region={this.state.mapRegion} />,
+      "trashcan": <TrashcanMarkers region={this.state.mapRegion} />,
+      "atm": <AtmMarkers region={this.state.mapRegion} filter={this.state.atmFilterBank} />
+    };
+    if (this.state.mapRegion.latitudeDelta < 0.1) {
+      return renderIcons[this.state.selected]
+    } else {
+      console.log("aa")
+      return <View>
+        <Text>放大以顯示</Text>
+      </View>
+    }
+  }
+
   render() {
     console.log("render")
-
+    console.log(this.state.mapRegion)
     const { navigation } = this.props;
     const colorLayer = this.state.animationDone ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "blue" }]} />;
     const whiteLayer = this.state.isMapReady ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "black" }]} />;
@@ -150,12 +172,6 @@ export default class MapScreen extends React.Component {
     //   })
     // }
 
-    const renderIcons = {
-      "restroom": <RestroomMarkers region={this.state.mapRegion} />,
-      "trashcan": <TrashcanMarkers region={this.state.mapRegion} />,
-      "atm": <AtmMarkers region={this.state.mapRegion} />
-    };
-
     // const renderIcons = this.state.chosenIcons.map((icon, i) => {
     //   return renderIconFunctions[icon];
     // });
@@ -192,7 +208,7 @@ export default class MapScreen extends React.Component {
           }
           }
         >
-          {this.state.isMapReady && renderIcons[this.state.selected]}
+          {this.state.isMapReady && this.renderIconsCondition()}
         </MapView>
         <View style={styles.openDrawerButtonContainer}>
           <MaterialCommunityIcons.Button
@@ -220,6 +236,8 @@ export default class MapScreen extends React.Component {
         </View>
         <AnimatedFilterButton
           onPress={(toUpdate) => this.updateSelected(toUpdate)}
+          updateFilterBank={(toUpdate) => { this.setState({ atmFilterBank: toUpdate }) }}
+          selected={this.state.selected}
         />
         {/* {loadingLayer} */}
         {/* </Animated.View>
@@ -276,5 +294,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 7,
     borderColor: Colors.buttonBorderColor,
+  },
+  zoomInAlertContainer: {
+    //marginHorizontal: 0 auto
   }
 });
