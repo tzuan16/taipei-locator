@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback
 } from 'react-native';
+
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import Colors from "../constants/Colors";
 import trashcanUnselected from "../../assets/images/trashcan-x.png";
@@ -15,6 +16,8 @@ import restroomUnselected from "../../assets/images/wc-x.png";
 import restroomSelected from "../../assets/images/wc-o.png";
 import atmSelected from "../../assets/images/atm-o.png";
 import atmUnselected from "../../assets/images/atm-x.png";
+import vmUnselected from "../../assets/images/vm-x.png";
+import vmSelected from "../../assets/images/vm-o.png";
 import FilterPopupPicker from "../components/FilterPopupPicker";
 
 import Layout from "../constants/Layout"
@@ -54,7 +57,7 @@ export default class AnimatedFilterButton extends React.PureComponent {
       })
     }
 
-    const items = ["trashcan", "restroom", "atm"];
+    const items = ["trashcan", "restroom", "atm", "vm"];
     return (
       <View>
         <TouchableWithoutFeedback
@@ -115,7 +118,8 @@ function FilterButton({ selected, updateSelected, item, opacity, openModal }) {
   const icon = {
     "trashcan": [trashcanSelected, trashcanUnselected, 2, 26],
     "restroom": [restroomSelected, restroomUnselected, 10, 28],
-    "atm": [atmSelected, atmUnselected, 12, 24]
+    "atm": [atmSelected, atmUnselected, 12, 24],
+    "vm": [vmSelected, vmUnselected, 12, 22],
   }
 
   return (

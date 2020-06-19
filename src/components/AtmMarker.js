@@ -12,44 +12,44 @@ import within from "../functions/withinCoord"
 
 export default class AtmMarkers extends React.PureComponent {
   render() {
-    return atmData.map((data) => {
-      if (within(this.props.region, data.lon, data.lat)) {
-        if (this.props.filter === "all") {
-          return <AtmMarker data={data} />
-        } else if (this.props.filter == data.code) {
-          return <AtmMarker data={data} />
+    return atmData.map((data, i) => {
+      if (this.props.filter === "all") {
+        if (within(this.props.region, data.lon, data.lat)) {
+          return <AtmMarker data={data} index={i} />
+        }
+      } else if (this.props.filter == data.code) {
+        if (within(this.props.region, data.lon, data.lat)) {
+          return <AtmMarker data={data} index={i} />
         }
       }
     })
   }
 }
 
-class AtmMarker extends React.Component {
+class AtmMarker extends React.PureComponent {
   state = {
     pressed: false
   }
   render() {
-    const { data } = this.props;
-    console.log("render atm", this.state.pressed)
+    const { data, index } = this.props;
     return (
       <Marker
-        key={`${data.id}${Date.now()}`}
+        key={`${index}${Date.now()}`}
         coordinate={{ longitude: data.lon, latitude: data.lat }}
         image={atmIcon}
         tracksViewChanges={false}
-        onPress={() => { this.setState({ pressed: true }) }}
+        onPress={(e) => { this.setState({ pressed: true }) }}
       >
         {this.state.pressed ?
           <MapView.Callout style={styles.calloutContainer} >
 
-            <View style={{ height: 50 }}>
+            <View>
               <Text style={styles.calloutTextTitle}> {data.location} </Text>
               <Text style={{ fontSize: 11, paddingBottom: 5 }}> {data.address}  </Text>
               <Text style={styles.calloutTextStrong}> {("00" + data.code).slice(-3)} {data.bank}  </Text>
-
             </View>
-
-          </MapView.Callout> : null}
+          </MapView.Callout>
+          : null}
       </Marker>
     )
   }

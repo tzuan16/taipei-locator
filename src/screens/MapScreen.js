@@ -13,12 +13,13 @@ import Geolocation from '@react-native-community/geolocation';
 import Layout from "../constants/Layout";
 import Colors from "../constants/Colors";
 
-
+import ZoomInText from "../components/ZoomInText";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import RestroomMarkers from "../components/RestroomMarker";
 import TrashcanMarkers from "../components/TrashcanMarker";
 import AtmMarkers from "../components/AtmMarker";
+import VMMarkers from "../components/VMMarker";
 import AnimatedFilterButton from "../components/AnimatedFilterButton";
 
 
@@ -37,7 +38,12 @@ export default class MapScreen extends React.PureComponent {
         latitudeDelta: 0.005,
         longitudeDelta: 0.005
       },
-      mapRegion: null,
+      mapRegion: {
+        latitude: 25.025,
+        longitude: 121.55,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005
+      },
       isMapReady: false,
       data: [],
       icon: null,
@@ -45,6 +51,7 @@ export default class MapScreen extends React.PureComponent {
       selected: "trashcan",
       iconsLoaded: false,
       atmFilterBank: "all",
+      showIcons: true,
     }
     console.log("project started")
   }
@@ -64,9 +71,11 @@ export default class MapScreen extends React.PureComponent {
           loadedUserLocation: true,
         })
         console.log("got location")
-        this.map.animateToRegion(this.state.userLocation, 1500)
+        if (region.longitude != null) {
+          this.map.animateToRegion(this.state.userLocation, 1500)
+        }
       },
-      error => console.log(error),
+      error => { console.log(error) },
       {
         enableHighAccuracy: false,
         timeout: 10000,
@@ -113,20 +122,18 @@ export default class MapScreen extends React.PureComponent {
     }
   }
 
-  renderIconsCondition = () => {
-    const renderIcons = {
-      "restroom": <RestroomMarkers region={this.state.mapRegion} />,
-      "trashcan": <TrashcanMarkers region={this.state.mapRegion} />,
-      "atm": <AtmMarkers region={this.state.mapRegion} filter={this.state.atmFilterBank} />
-    };
-    if (this.state.mapRegion.latitudeDelta < 0.1) {
-      return renderIcons[this.state.selected]
-    } else {
-      console.log("aa")
-      return <View>
-        <Text>放大以顯示</Text>
-      </View>
-    }
+  updateShowIcons = (region) => {
+    this.setState({ mapRegion: region }, () => {
+      if (this.state.showIcons && this.state.mapRegion.longitudeDelta > 0.06) {
+        this.setState({
+          showIcons: false,
+        })
+      } else if (!this.state.showIcons && this.state.mapRegion.longitudeDelta < 0.06) {
+        this.setState({
+          showIcons: true,
+        })
+      }
+    })
   }
 
   render() {
@@ -155,6 +162,13 @@ export default class MapScreen extends React.PureComponent {
         extrapolate: "clamp"
       })
     }
+
+    const renderIcons = {
+      "restroom": <RestroomMarkers region={this.state.mapRegion} />,
+      "trashcan": <TrashcanMarkers region={this.state.mapRegion} />,
+      "atm": <AtmMarkers region={this.state.mapRegion} filter={this.state.atmFilterBank} />,
+      "vm": <VMMarkers region={this.state.mapRegion} />
+    };
 
     // if (this.state.isMapReady && !this.state.animationDone) {
     //   console.log("animation start")
@@ -199,16 +213,16 @@ export default class MapScreen extends React.PureComponent {
           showsMyLocationButton
           showsCompass
           initialRegion={this.state.userLocation}
-          onRegionChangeComplete={region => { this.setState({ mapRegion: region }) }}
+          onRegionChangeComplete={region => { this.updateShowIcons(region) }}
           ref={(map) => { this.map = map }}
           onMapReady={() => { this.setState({ isMapReady: true }); console.log("map ready") }}
           onUserLocationChange={Location => {
             const { latitude, longitude, speed } = Location.nativeEvent.coordinate
             this.updateUserLocation(latitude, longitude, speed)
-          }
-          }
+          }}
+          loadingEnabled
         >
-          {this.state.isMapReady && this.renderIconsCondition()}
+          {(this.state.isMapReady && this.state.showIcons) && renderIcons[this.state.selected]}
         </MapView>
         <View style={styles.openDrawerButtonContainer}>
           <MaterialCommunityIcons.Button
@@ -239,6 +253,7 @@ export default class MapScreen extends React.PureComponent {
           updateFilterBank={(toUpdate) => { this.setState({ atmFilterBank: toUpdate }) }}
           selected={this.state.selected}
         />
+        <ZoomInText show={!this.state.showIcons} />
         {/* {loadingLayer} */}
         {/* </Animated.View>
 

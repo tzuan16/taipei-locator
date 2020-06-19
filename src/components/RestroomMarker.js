@@ -87,11 +87,11 @@ class RestroomMarker extends React.PureComponent {
   }
 
   render() {
-    console.log("restroom render")
+    console.log(`${index}${Date.now()}`)
     const { data, index } = this.props;
     return (
       <Marker
-        key={`${index}${Date.now()}`}
+        key={`${index}${Date.now()}`.toString()}
         coordinate={{ longitude: parseFloat(data.Lng), latitude: parseFloat(data.Lat) }}
         image={restroomIcon}
         tracksViewChanges={false}
