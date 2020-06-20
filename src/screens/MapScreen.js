@@ -20,6 +20,7 @@ import RestroomMarkers from "../components/RestroomMarker";
 import TrashcanMarkers from "../components/TrashcanMarker";
 import AtmMarkers from "../components/AtmMarker";
 import VMMarkers from "../components/VMMarker";
+import BikeMarkers from "../components/BikeMarker";
 import AnimatedFilterButton from "../components/AnimatedFilterButton";
 
 
@@ -167,7 +168,8 @@ export default class MapScreen extends React.PureComponent {
       "restroom": <RestroomMarkers region={this.state.mapRegion} />,
       "trashcan": <TrashcanMarkers region={this.state.mapRegion} />,
       "atm": <AtmMarkers region={this.state.mapRegion} filter={this.state.atmFilterBank} />,
-      "vm": <VMMarkers region={this.state.mapRegion} />
+      "vm": <VMMarkers region={this.state.mapRegion} />,
+      "bike": <BikeMarkers region={this.state.mapRegion} />
     };
 
     // if (this.state.isMapReady && !this.state.animationDone) {

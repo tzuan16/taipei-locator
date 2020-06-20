@@ -34,7 +34,7 @@ class AtmMarker extends React.PureComponent {
     const { data, index } = this.props;
     return (
       <Marker
-        key={`${index}${Date.now()}`}
+        key={`${Date.now()}`}
         coordinate={{ longitude: data.lon, latitude: data.lat }}
         image={atmIcon}
         tracksViewChanges={false}
@@ -64,6 +64,8 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
   calloutTextStrong: {
-    paddingLeft: 2, fontSize: 10, fontWeight: "900",
+    paddingLeft: 2,
+    fontSize: 10,
+    fontWeight: "900",
   },
 });

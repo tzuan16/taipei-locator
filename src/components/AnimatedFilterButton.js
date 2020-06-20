@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback
 } from 'react-native';
-
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import Colors from "../constants/Colors";
 import trashcanUnselected from "../../assets/images/trashcan-x.png";
@@ -18,6 +17,8 @@ import atmSelected from "../../assets/images/atm-o.png";
 import atmUnselected from "../../assets/images/atm-x.png";
 import vmUnselected from "../../assets/images/vm-x.png";
 import vmSelected from "../../assets/images/vm-o.png";
+import bikeUnselected from "../../assets/images/bike-x.png";
+import bikeSelected from "../../assets/images/bike-o.png";
 import FilterPopupPicker from "../components/FilterPopupPicker";
 
 import Layout from "../constants/Layout"
@@ -38,7 +39,7 @@ export default class AnimatedFilterButton extends React.PureComponent {
 
   updateWidth = (open) => {
     Animated.timing(this.state.width, {
-      toValue: open ? 300 : 45,
+      toValue: open ? 240 : 45,
       duration: 500,
       useNativeDriver: false,
     }).start(
@@ -51,13 +52,13 @@ export default class AnimatedFilterButton extends React.PureComponent {
   render() {
     const opacity = {
       opacity: this.state.width.interpolate({
-        inputRange: [45, 200, 300],
+        inputRange: [45, 220, 240],
         outputRange: [0, 0.5, 1],
         extrapolate: "clamp"
       })
     }
 
-    const items = ["trashcan", "restroom", "atm", "vm"];
+    const items = ["trashcan", "restroom", "atm", "vm", "bike"];
     return (
       <View>
         <TouchableWithoutFeedback
@@ -80,7 +81,7 @@ export default class AnimatedFilterButton extends React.PureComponent {
                 name={this.state.opened ? "filter-outline" : "filter"}
                 size={32}
                 color={Colors.buttonColor}
-                style={{ paddingTop: 5 }}
+                style={{ paddingTop: 5, paddingRight: 2 }}
               />
 
             </TouchableOpacity>
@@ -120,6 +121,7 @@ function FilterButton({ selected, updateSelected, item, opacity, openModal }) {
     "restroom": [restroomSelected, restroomUnselected, 10, 28],
     "atm": [atmSelected, atmUnselected, 12, 24],
     "vm": [vmSelected, vmUnselected, 12, 22],
+    "bike": [bikeSelected, bikeUnselected, 12, 28]
   }
 
   return (
