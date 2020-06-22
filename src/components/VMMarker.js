@@ -11,9 +11,7 @@ export default class VMMarkers extends React.PureComponent {
       if (within(this.props.region, data.lng, data.lat)) {
         return <VMMarker data={data} />
       }
-    }
-
-    )
+    })
   }
 }
 

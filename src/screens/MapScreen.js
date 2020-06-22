@@ -1,14 +1,10 @@
 import React from 'react';
 import {
-  Animated,
-  Text,
   StyleSheet,
   View,
   TouchableOpacity,
 } from 'react-native';
-import MaskedView from '@react-native-community/masked-view';
-import MapView, { Marker } from 'react-native-maps';
-//import MapView from 'react-native-map-clustering';
+import MapView from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import Layout from "../constants/Layout";
 import Colors from "../constants/Colors";
@@ -21,18 +17,14 @@ import TrashcanMarkers from "../components/TrashcanMarker";
 import AtmMarkers from "../components/AtmMarker";
 import VMMarkers from "../components/VMMarker";
 import BikeMarkers from "../components/BikeMarker";
+import ClothingMarkers from "../components/ClothingMarker";
 import AnimatedFilterButton from "../components/AnimatedFilterButton";
+import { hasNotch } from "react-native-device-info";
 
-
-import loadingMask from "../../assets/images/find.png"
-
-//Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
 export default class MapScreen extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      loadingProgress: new Animated.Value(0),
-      animationDone: false,
       userLocation: {
         latitude: 25.025,
         longitude: 121.55,
@@ -46,15 +38,12 @@ export default class MapScreen extends React.PureComponent {
         longitudeDelta: 0.005
       },
       isMapReady: false,
-      data: [],
-      icon: null,
-      currentMarker: null,
+
       selected: "trashcan",
       iconsLoaded: false,
       atmFilterBank: "all",
       showIcons: true,
     }
-    console.log("project started")
   }
 
   getCurrentLocation = () => {
@@ -87,21 +76,13 @@ export default class MapScreen extends React.PureComponent {
 
   componentDidMount() {
     this.getCurrentLocation();
-    console.log("componentDidMount")
     this.setState({ iconsLoaded: true })
   }
 
-  componentDidUpdate(prevProp, prevState) {
-    console.log("did update")
-    // if (prevState.chosenIcons !== this.state.chosenIcons) {
-    //   this.setState({ iconsLoaded: true })
-    //   console.log("a")
-    // }
-  }
-
   updateSelected = (toUpdate) => {
-    // The toUpdate item exists in current state array
-    // Should remove it
+    if (toUpdate != "atm") {
+      this.updateShowIcons(this.state.mapRegion, toUpdate, this.state.atmFilterBank)
+    }
     this.setState({
       // chosenIcons: exist ?
       //   prevState.chosenIcons.filter(item => item != toUpdate) :
@@ -123,101 +104,44 @@ export default class MapScreen extends React.PureComponent {
     }
   }
 
-  updateShowIcons = (region) => {
-    this.setState({ mapRegion: region }, () => {
-      if (this.state.showIcons && this.state.mapRegion.longitudeDelta > 0.06) {
-        this.setState({
-          showIcons: false,
-        })
-      } else if (!this.state.showIcons && this.state.mapRegion.longitudeDelta < 0.06) {
-        this.setState({
-          showIcons: true,
-        })
-      }
-    })
-  }
-
-  render() {
-    console.log("render")
-    console.log(this.state.mapRegion)
-    const { navigation } = this.props;
-    const colorLayer = this.state.animationDone ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "blue" }]} />;
-    const whiteLayer = this.state.isMapReady ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "black" }]} />;
-    const imageScale = {
-      transform: [
-        {
-          scale: this.state.loadingProgress.interpolate({
-            inputRange: [0, 15, 100],
-            outputRange: [0.1, 0.06, 16],
-          })
-        }
-      ]
-    }
-
-    const loadingLayer = this.state.iconsLoaded ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "black", opacity: 0.5 }]} />;
-
-    const opacity = {
-      opacity: this.state.loadingProgress.interpolate({
-        inputRange: [0, 25, 50],
-        outputRange: [0, 0, 1],
-        extrapolate: "clamp"
+  updateShowIcons = (region, nextItem, nextFilterBank) => {
+    let threshold = (nextItem == "atm" && nextFilterBank == "all") ?
+      0.015 : 0.05
+    this.setState({ mapRegion: region })
+    if (this.state.showIcons && this.state.mapRegion.longitudeDelta > threshold) {
+      this.setState({
+        showIcons: false,
+      })
+    } else if (!this.state.showIcons && this.state.mapRegion.longitudeDelta <= threshold) {
+      this.setState({
+        showIcons: true,
       })
     }
+  }
 
+
+  render() {
+    const { navigation } = this.props;
     const renderIcons = {
       "restroom": <RestroomMarkers region={this.state.mapRegion} />,
       "trashcan": <TrashcanMarkers region={this.state.mapRegion} />,
       "atm": <AtmMarkers region={this.state.mapRegion} filter={this.state.atmFilterBank} />,
       "vm": <VMMarkers region={this.state.mapRegion} />,
-      "bike": <BikeMarkers region={this.state.mapRegion} />
+      "bike": <BikeMarkers region={this.state.mapRegion} />,
+      "clothing": <ClothingMarkers region={this.state.mapRegion} />
     };
 
-    // if (this.state.isMapReady && !this.state.animationDone) {
-    //   console.log("animation start")
-
-    //   Animated.timing(this.state.loadingProgress, {
-    //     toValue: 100,
-    //     duration: 3000,
-    //     useNativeDriver: true,
-    //     delay: 400,
-    //   }).start(() => {
-    //     this.setState({
-    //       animationDone: true
-    //     })
-
-    //   })
-    // }
-
-    // const renderIcons = this.state.chosenIcons.map((icon, i) => {
-    //   return renderIconFunctions[icon];
-    // });
-
     return (
-
       <View style={{ flex: 1 }}>
-        {/* {colorLayer}
-        <MaskedView
-          style={{ flex: 1 }}
-          maskElement={
-            <View style={styles.centeredContainer}>
-              <Animated.Image
-                source={loadingMask}
-                style={[{ width: 1000 }, imageScale]}
-                resizeMode="contain"
-              />
-            </View>
-          }
-        >
-          <Animated.View style={[styles.mapContainer, opacity]}> */}
         <MapView
           style={styles.mapStyle}
           showsUserLocation
-          showsMyLocationButton
+          showsMyLocationButton={false}
           showsCompass
           initialRegion={this.state.userLocation}
-          onRegionChangeComplete={region => { this.updateShowIcons(region) }}
+          onRegionChangeComplete={region => { this.updateShowIcons(region, this.state.selected, this.state.atmFilterBank) }}
           ref={(map) => { this.map = map }}
-          onMapReady={() => { this.setState({ isMapReady: true }); console.log("map ready") }}
+          onMapReady={() => { this.setState({ isMapReady: true }) }}
           onUserLocationChange={Location => {
             const { latitude, longitude, speed } = Location.nativeEvent.coordinate
             this.updateUserLocation(latitude, longitude, speed)
@@ -235,7 +159,6 @@ export default class MapScreen extends React.PureComponent {
             iconStyle={styles.openDrawerButton}
           />
         </View>
-
         <View style={styles.showUserLocationButtonContainer}>
           <TouchableOpacity
             style={[styles.showUserLocationButton, styles.centered]}
@@ -245,21 +168,20 @@ export default class MapScreen extends React.PureComponent {
             <FontAwesome5
               name="location-arrow"
               size={26}
-              color={Colors.buttonColor}
+              color={Colors.theme}
               style={{ paddingTop: 0 }}
             />
           </TouchableOpacity>
         </View>
         <AnimatedFilterButton
-          onPress={(toUpdate) => this.updateSelected(toUpdate)}
-          updateFilterBank={(toUpdate) => { this.setState({ atmFilterBank: toUpdate }) }}
+          onPress={(toUpdate) => { this.updateSelected(toUpdate) }}
+          updateFilterBank={(toUpdate) => {
+            this.updateShowIcons(this.state.mapRegion, "atm", toUpdate)
+            this.setState({ atmFilterBank: toUpdate })
+          }}
           selected={this.state.selected}
         />
         <ZoomInText show={!this.state.showIcons} />
-        {/* {loadingLayer} */}
-        {/* </Animated.View>
-
-        </MaskedView> */}
       </View >
     )
 
@@ -280,20 +202,19 @@ const styles = StyleSheet.create({
     width: Layout.window.width,
     height: Layout.window.height,
   },
-  calloutContainer: {
-
-  },
   calloutTextTitle: {
     fontSize: 15,
     paddingBottom: 5,
   },
   calloutTextStrong: {
-    paddingLeft: 2, fontSize: 10, fontWeight: "900",
+    paddingLeft: 2,
+    fontSize: 10,
+    fontWeight: "900",
   },
   openDrawerButtonContainer: {
     position: "absolute",
     left: 20,
-    top: 50,
+    top: hasNotch() ? 50 : 30,
   },
   openDrawerButton: {
     marginRight: 0,
@@ -310,9 +231,6 @@ const styles = StyleSheet.create({
     width: 45,
     borderWidth: 2,
     borderRadius: 7,
-    borderColor: Colors.buttonBorderColor,
+    borderColor: Colors.gray,
   },
-  zoomInAlertContainer: {
-    //marginHorizontal: 0 auto
-  }
 });

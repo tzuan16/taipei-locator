@@ -5,7 +5,8 @@ import {
   StyleSheet,
   Animated,
   TouchableOpacity,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Platform
 } from 'react-native';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import Colors from "../constants/Colors";
@@ -19,27 +20,21 @@ import vmUnselected from "../../assets/images/vm-x.png";
 import vmSelected from "../../assets/images/vm-o.png";
 import bikeUnselected from "../../assets/images/bike-x.png";
 import bikeSelected from "../../assets/images/bike-o.png";
+import clothingUnselected from "../../assets/images/clothing-x.png";
+import clothingSelected from "../../assets/images/clothing-o.png";
 import FilterPopupPicker from "../components/FilterPopupPicker";
-
-import Layout from "../constants/Layout"
-import { Picker } from '@react-native-community/picker';
 
 
 export default class AnimatedFilterButton extends React.PureComponent {
   state = {
     width: new Animated.Value(45),
     opened: false,
-    // selected: {
-    //   "trashcan": true,
-    //   "restroom": false,
-    //   "atm": false,
-    // },
     modalOpened: false,
   };
 
   updateWidth = (open) => {
     Animated.timing(this.state.width, {
-      toValue: open ? 240 : 45,
+      toValue: open ? 270 : 45,
       duration: 500,
       useNativeDriver: false,
     }).start(
@@ -52,13 +47,13 @@ export default class AnimatedFilterButton extends React.PureComponent {
   render() {
     const opacity = {
       opacity: this.state.width.interpolate({
-        inputRange: [45, 220, 240],
+        inputRange: [45, 220, 270],
         outputRange: [0, 0.5, 1],
         extrapolate: "clamp"
       })
     }
 
-    const items = ["trashcan", "restroom", "atm", "vm", "bike"];
+    const items = ["trashcan", "restroom", "atm", "vm", "bike", "clothing"];
     return (
       <View>
         <TouchableWithoutFeedback
@@ -80,8 +75,8 @@ export default class AnimatedFilterButton extends React.PureComponent {
               <MaterialCommunityIcons
                 name={this.state.opened ? "filter-outline" : "filter"}
                 size={32}
-                color={Colors.buttonColor}
-                style={{ paddingTop: 5, paddingRight: 2 }}
+                color={Colors.theme}
+                style={{ paddingTop: Platform.OS == "ios" ? 5 : 0, paddingRight: 2 }}
               />
 
             </TouchableOpacity>
@@ -121,7 +116,8 @@ function FilterButton({ selected, updateSelected, item, opacity, openModal }) {
     "restroom": [restroomSelected, restroomUnselected, 10, 28],
     "atm": [atmSelected, atmUnselected, 12, 24],
     "vm": [vmSelected, vmUnselected, 12, 22],
-    "bike": [bikeSelected, bikeUnselected, 12, 28]
+    "bike": [bikeSelected, bikeUnselected, 12, 28],
+    "clothing": [clothingSelected, clothingUnselected, 12, 24]
   }
 
   return (
@@ -151,7 +147,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderWidth: 2,
     borderRadius: 7,
-    borderColor: Colors.buttonBorderColor,
+    borderColor: Colors.gray,
     alignItems: "center",
   },
   button: {

@@ -13,7 +13,6 @@ import within from "../functions/withinCoord"
 
 export default class RestroomMarkers extends React.PureComponent {
   render() {
-    console.log("restroom")
     return restroomData.ToiletData.map((data, i) => {
       if (within(this.props.region, data.Lng, data.Lat)) {
         return <RestroomMarker data={data} index={i} />
@@ -70,7 +69,6 @@ class RestroomMarker extends React.PureComponent {
         style={{ paddingLeft: 2 }} />
       <Text style={styles.calloutTextStrong}>{ratingNames[level]}級</Text>
     </View>;
-
   }
 
   restroomRatings = () => {
@@ -87,7 +85,6 @@ class RestroomMarker extends React.PureComponent {
   }
 
   render() {
-    console.log(`${index}${Date.now()}`)
     const { data, index } = this.props;
     return (
       <Marker

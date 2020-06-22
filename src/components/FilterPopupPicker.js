@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, Platform } from "react-native";
 import Modal from "react-native-modal";
 import { Picker } from "@react-native-community/picker";
 import Layout from "../constants/Layout";
 import banks from "../../assets/data/banks.json";
+import Colors from "../constants/Colors";
 
 export default function FilterPopupPicker({ opened, setOpened, updateSelected, updateFilterBank, children }) {
   const [bank, setBank] = useState("all")
-  console.log(Layout.window.height)
   return (
     <View style={styles.container}>
       <Modal
@@ -68,11 +68,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    marginHorizontal: "10%",
-    marginVertical: (Layout.window.height - 320) / 2,
+    marginHorizontal: Platform.OS == "ios" ? "10%" : "20%",
+    marginVertical: Platform.OS == "ios" ? (Layout.window.height - 320) / 2 : (Layout.window.height - 170) / 2,
     borderRadius: 10,
     borderWidth: 3,
-    borderColor: "black",
+    borderColor: Colors.theme,
   },
   contentContainer: {
     flex: 1,

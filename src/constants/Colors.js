@@ -1,4 +1,5 @@
 export default {
-  buttonColor: "#606060",
-  buttonBorderColor: "#e0e0e0",
+  theme: "#ff9933",
+  light: "#ffb266",
+  gray: "#d0d0d0"
 };

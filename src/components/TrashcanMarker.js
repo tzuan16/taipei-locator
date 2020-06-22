@@ -7,12 +7,8 @@ import within from "../functions/withinCoord"
 
 export default class TrashcanMarkers extends React.PureComponent {
   render() {
-    console.log("loading trashcan")
-
     return trashcanData.map((data) => {
       if (within(this.props.region, data.long, data.lat)) {
-
-
         return <TrashcanMarker data={data} />
       }
     }
@@ -21,12 +17,7 @@ export default class TrashcanMarkers extends React.PureComponent {
   }
 }
 
-
-
-
-
 function TrashcanMarker({ data }) {
-
   return (
     <Marker
       key={data.field1}

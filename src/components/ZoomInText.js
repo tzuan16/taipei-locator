@@ -11,14 +11,12 @@ const dim = { x: 160, y: 50 };
 export default function ZoomInText({ show }) {
   const aniOpacity = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    console.log(show, "update")
     Animated.timing(aniOpacity, {
       toValue: show ? 1 : 0,
       duration: 250,
       useNativeDriver: true
     }).start()
   }, [show])
-  console.log(aniOpacity)
   if (show) {
     return (
       <Animated.View style={{

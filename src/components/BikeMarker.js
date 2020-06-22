@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  Alert
 } from 'react-native';
 
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
@@ -17,7 +18,7 @@ export default class BikeMarkers extends React.PureComponent {
   state = {
     isLoading: true,
     data: null,
-    preselectedKey: "0000",
+    noConnection: false,
   }
 
   componentDidMount() {
@@ -26,13 +27,21 @@ export default class BikeMarkers extends React.PureComponent {
   }
 
   downloadData = () => {
-    console.log("download")
     fetch("https://tcgbusfs.blob.core.windows.net/blobyoubike/YouBikeTP.json")
       .then((response) => response.json())
       .then((json) => {
         this.setState({ data: json.retVal });
       })
-      .catch((error) => console.error(error))
+      .catch((error) => {
+        Alert.alert(
+          "小提醒",
+          "連上網路以獲得最新資訊",
+          [
+            { text: "了解！", onPress: () => console.log("OK Pressed") }
+          ],
+          { cancelable: false }
+        );
+      })
       .finally(() => {
         this.setState({ isLoading: false });
       });
@@ -65,7 +74,7 @@ export default class BikeMarkers extends React.PureComponent {
   }
 }
 
-class BikeMarker extends React.Component {
+class BikeMarker extends React.PureComponent {
   state = {
     pressed: false,
   }

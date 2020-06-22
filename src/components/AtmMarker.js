@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
 } from 'react-native';
-
 import MapView, { Marker } from 'react-native-maps';
 import atmIcon from "../../assets/images/atm.png";
 import atmData from "../../assets/data/atms.json";
@@ -34,22 +33,22 @@ class AtmMarker extends React.PureComponent {
     const { data, index } = this.props;
     return (
       <Marker
-        key={`${Date.now()}`}
+        //key={`${index}${Date.now()}`}
         coordinate={{ longitude: data.lon, latitude: data.lat }}
         image={atmIcon}
         tracksViewChanges={false}
         onPress={(e) => { this.setState({ pressed: true }) }}
       >
-        {this.state.pressed ?
-          <MapView.Callout style={styles.calloutContainer} >
+        {/* {this.state.pressed ? */}
+        <MapView.Callout style={styles.calloutContainer} >
 
-            <View>
-              <Text style={styles.calloutTextTitle}> {data.location} </Text>
-              <Text style={{ fontSize: 11, paddingBottom: 5 }}> {data.address}  </Text>
-              <Text style={styles.calloutTextStrong}> {("00" + data.code).slice(-3)} {data.bank}  </Text>
-            </View>
-          </MapView.Callout>
-          : null}
+          <View>
+            <Text style={styles.calloutTextTitle}> {data.location} </Text>
+            <Text style={{ fontSize: 11, paddingBottom: 5 }}> {data.address}  </Text>
+            <Text style={styles.calloutTextStrong}> {("00" + data.code).slice(-3)} {data.bank}  </Text>
+          </View>
+        </MapView.Callout>
+        {/* : null} */}
       </Marker>
     )
   }
