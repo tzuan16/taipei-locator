@@ -1,8 +1,8 @@
 # I SPY Taipei （找找台北）
 
-**Google Play Store: https://play.google.com/store/apps/details?id=com.taipei_locator**
+Google Play Store: https://play.google.com/store/apps/details?id=com.taipei_locator
 
-**App Store: pending for a developer account. It's been taking for weeks ಠoಠ**
+App Store: pending for a developer account. **It's been taking for weeks ಠoಠ**
 
 ## Usage
 ### Rapidly locate nearby:
